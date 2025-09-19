@@ -1,0 +1,142 @@
+this is the entity
+package com.sidbi.msmex.buyer.entity;
+
+import java.time.LocalDateTime;
+
+import com.sidbi.msmex.buyer.service.BuyerId;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
+import lombok.Data;
+
+@Entity
+@Table(name = "MS_BUYER_MASTER")
+@Data
+public class MsBuyerMasterEntity {
+
+	@Id
+	@BuyerId
+	@Column(name = "BM_BUYER_ID")
+	private String buyerId;
+
+	@Column(name = "BM_NAME")
+	private String name;
+
+	@Column(name = "USER_TYPE")
+	private String userType;
+
+	@Column(name = "BM_MOBILE_NO")
+	private String mobileNo;
+
+	@Column(name = "BM_EMAIL")
+	private String email;
+
+	@Column(name = "BM_GSTN")
+	private String gstn;
+
+	@Column(name = "BM_CONSTITUTION")
+	private String constitution;
+
+	@Column(name = "BM_DATE_OF_INC")
+	private LocalDateTime dateOfIncorporation;
+
+	@Column(name = "BM_ADDRESS")
+	private String address;
+
+	@Column(name = "BM_CITY")
+	private String city;
+
+	@Column(name = "BM_STATE")
+	private String state;
+
+	@Column(name = "BM_PIN")
+	private Integer pin;
+
+	@Column(name = "BM_MSME")
+	private String msme;
+
+	@Column(name = "BM_PASSWORD")
+	private String password;
+
+	@Column(name = "BM_ACTIVE")
+	private String active;
+
+	@Column(name = "BM_BUYER_CREATION_DT")
+	private LocalDateTime creationDate;
+
+	@Column(name = "BM_CATEGORY")
+	private String category;
+
+	@Column(name = "BM_USER_ID")
+	private Long bmUserId;
+
+	@Column(name = "BM_PAN")
+	private String bmPan;
+
+	@Column(name = "ALT_MOB_NO")
+	private String altMobNo;
+
+	@Column(name = "ALT_EMAIL_NO")
+	private String altEmailNo;
+
+	@PrePersist
+	protected void onCreate() {
+		this.creationDate = LocalDateTime.now();
+	}
+
+}
+this is the custom annotation for the BuyerId
+package com.sidbi.msmex.buyer.service;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+import org.hibernate.annotations.IdGeneratorType;
+
+import com.sidbi.msmex.buyer.entity.BuyerIdGenerator;
+
+@IdGeneratorType(BuyerIdGenerator.class)
+@Target({ ElementType.FIELD, ElementType.METHOD })
+@Retention(RetentionPolicy.RUNTIME)
+public @interface BuyerId {
+}
+and this is the BuyerIdGenerator class
+package com.sidbi.msmex.buyer.entity;
+
+import java.math.BigDecimal;
+import java.util.EnumSet;
+
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.hibernate.generator.BeforeExecutionGenerator;
+import org.hibernate.generator.EventType;
+
+import com.sidbi.msmex.buyer.exception.CustomAppException;
+
+public class BuyerIdGenerator implements BeforeExecutionGenerator {
+	private static final long serialVersionUID = 1L;
+	private static final String PREFIX = "B-";
+
+	@Override
+	public Object generate(SharedSessionContractImplementor session, Object owner, Object currentValue,
+			EventType eventType) {
+		try {
+			BigDecimal seqVal = session
+					.createNativeQuery("SELECT MS_BUYER_MASTER_SEQ.NEXTVAL FROM DUAL", BigDecimal.class)
+					.getSingleResult();
+
+			return PREFIX + String.format("%06d", seqVal.longValue());
+		} catch (Exception e) {
+			throw new CustomAppException("Unable to generate Buyer ID " + e.getMessage());
+		}
+	}
+
+	@Override
+	public EnumSet<EventType> getEventTypes() {
+		return EnumSet.of(EventType.INSERT);
+	}
+}
